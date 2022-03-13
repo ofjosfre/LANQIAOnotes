@@ -1,0 +1,111 @@
+C51 COMPILER V9.00   3_0                                                                   03/12/2022 23:25:41 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 3_0
+OBJECT MODULE PLACED IN 3.0.OBJ
+COMPILER INVOKED BY: D:\kiel 5\C51\BIN\C51.EXE 3.0.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include "reg52.h"
+   2          
+   3          sbit HC138_A=P2^5;
+   4          sbit HC138_B=P2^6;
+   5          sbit HC138_C=P2^7;
+   6          
+   7          unsigned char code SMG[18]=
+   8          {0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,
+   9          0x90,0x88,0x80,0xc6,0xc0,0x86,0x8e,0xbf,0x7f};
+  10          
+  11          void delay(unsigned int t)
+  12          {
+  13   1      while(t--);
+  14   1      while(t--);
+  15   1      }
+  16          
+  17          
+  18          void select(unsigned char m)
+  19          {
+  20   1        switch (m)
+  21   1        {
+  22   2        case 4:
+  23   2        HC138_C=1;
+  24   2        HC138_B=0;
+  25   2        HC138_A=0;
+  26   2        break;
+  27   2        case 5:
+  28   2        HC138_C=1;
+  29   2        HC138_B=0;
+  30   2        HC138_A=1;
+  31   2        break;
+  32   2        case 6:
+  33   2        HC138_C=1;
+  34   2        HC138_B=1;
+  35   2        HC138_A=0;
+  36   2        break;
+  37   2        case 7:
+  38   2        HC138_C=1;
+  39   2        HC138_B=1;
+  40   2        HC138_A=1;
+  41   2        break;
+  42   2        } 
+  43   1      }
+  44          
+  45          void SMGdisplay(unsigned char dat,unsigned char pos)
+  46          {
+  47   1      select(6);
+  48   1      P0=0x01<<pos;
+  49   1      select(7);
+  50   1      P0=dat;
+  51   1      
+  52   1      }
+  53          
+  54          void SMGrec()
+  55          {
+C51 COMPILER V9.00   3_0                                                                   03/12/2022 23:25:41 PAGE 2   
+
+  56   1        unsigned char i,j;
+  57   1         for(i=0;i<9;i++)
+  58   1         {
+  59   2           for(j=0;j<10;j++)
+  60   2            {
+  61   3          SMGdisplay(SMG[j],i);
+  62   3            delay(80000);
+  63   3         delay(80000);
+  64   3             }
+  65   2         }
+  66   1      for(i=0;i<19;i++)
+  67   1            {
+  68   2                 select(6);
+  69   2                 P0=0xff;
+  70   2                 select(7);
+  71   2                 P0=SMG[i];             
+  72   2      delay(80000);
+  73   2      delay(80000);
+  74   2             }
+  75   1      }
+  76          
+  77          
+  78          
+  79          void main()
+  80          {
+  81   1      while(1)
+  82   1      {
+  83   2      
+  84   2      SMGrec();
+  85   2      }
+  86   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    165    ----
+   CONSTANT SIZE    =     18    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,125 @@
+C51 COMPILER V9.00   4_0                                                                   03/13/2022 00:00:22 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 4_0
+OBJECT MODULE PLACED IN 4.0.OBJ
+COMPILER INVOKED BY: D:\kiel 5\C51\BIN\C51.EXE 4.0.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include "reg52.h"
+   2          
+   3          unsigned month=1;
+   4          
+   5          
+   6          sbit HC138_A=P2^5;
+   7          sbit HC138_B=P2^6;
+   8          sbit HC138_C=P2^7;
+   9          
+  10          unsigned char code SMG[18]=
+  11          {0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,
+  12          0x90,0x88,0x80,0xc6,0xc0,0x86,0x8e,0xbf,0x7f};
+  13          
+  14          void delay(unsigned int t)
+  15          {
+  16   1      while(t--);
+  17   1      }
+  18          
+  19          
+  20          void select(unsigned char m)
+  21          {
+  22   1        switch (m)
+  23   1        {
+  24   2        case 4:
+  25   2        HC138_C=1;
+  26   2        HC138_B=0;
+  27   2        HC138_A=0;
+  28   2        break;
+  29   2        case 5:
+  30   2        HC138_C=1;
+  31   2        HC138_B=0;
+  32   2        HC138_A=1;
+  33   2        break;
+  34   2        case 6:
+  35   2        HC138_C=1;
+  36   2        HC138_B=1;
+  37   2        HC138_A=0;
+  38   2        break;
+  39   2        case 7:
+  40   2        HC138_C=1;
+  41   2        HC138_B=1;
+  42   2        HC138_A=1;
+  43   2        break;
+  44   2        } 
+  45   1      }
+  46          
+  47          void SMGdisplay(unsigned char value,unsigned char pos)
+  48          {
+  49   1      select(6);
+  50   1      P0=0x01<<pos;
+  51   1      select(7);
+  52   1      P0=value;
+  53   1      }
+  54          
+  55          
+C51 COMPILER V9.00   4_0                                                                   03/13/2022 00:00:22 PAGE 2   
+
+  56          
+  57          void SMGdisplayDynamic()
+  58          {
+  59   1      SMGdisplay(SMG[2],0);
+  60   1      delay(500);
+  61   1      SMGdisplay(SMG[0],1);
+  62   1      delay(500);
+  63   1      SMGdisplay(SMG[1],2);
+  64   1      delay(500);
+  65   1      SMGdisplay(SMG[8],3);
+  66   1      delay(500);
+  67   1      SMGdisplay(SMG[16],4);
+  68   1      delay(500);
+  69   1      SMGdisplay(SMG[16],5);
+  70   1      delay(500);
+  71   1      SMGdisplay(SMG[month/10],6);
+  72   1      delay(500);
+  73   1      SMGdisplay(SMG[month%10],7);
+  74   1      delay(500);
+  75   1      
+  76   1      
+  77   1      }
+  78          
+  79          void delay1(unsigned char t)
+  80          {
+  81   1      while(t--)
+  82   1      {
+  83   2      SMGdisplayDynamic();
+  84   2      }
+  85   1      
+  86   1      }
+  87          
+  88          void main()
+  89          {
+  90   1      while(1)
+  91   1        {
+  92   2      SMGdisplayDynamic();
+  93   2      month++;
+  94   2      if(month>12)
+  95   2      {
+  96   3      month=1;
+  97   3      }
+  98   2      delay1(100);
+  99   2        }
+ 100   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    241    ----
+   CONSTANT SIZE    =     18    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

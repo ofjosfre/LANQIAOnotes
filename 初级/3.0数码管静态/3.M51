@@ -1,0 +1,223 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        03/12/2022  23:25:41  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+D:\KIEL 5\C51\BIN\BL51.EXE STARTUP.obj, 3.0.obj TO 3.0 RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  STARTUP.obj (?C_STARTUP)
+  3.0.obj (3_0)
+
+
+LINK MAP OF MODULE:  3.0 (?C_STARTUP)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            IDATA   0008H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+                    0003H     07FDH                  *** GAP ***
+            CODE    0800H     0037H     UNIT         ?PR?SMGREC?3_0
+            CODE    0837H     002BH     UNIT         ?PR?_SELECT?3_0
+            CODE    0862H     0020H     UNIT         ?PR?_DELAY?3_0
+            CODE    0882H     001EH     UNIT         ?PR?_SMGDISPLAY?3_0
+            CODE    08A0H     0012H     UNIT         ?CO?3_0
+            CODE    08B2H     000CH     UNIT         ?C_C51STARTUP
+            CODE    08BEH     0005H     UNIT         ?PR?MAIN?3_0
+
+
+
+OVERLAY MAP OF MODULE:   3.0 (?C_STARTUP)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?3_0
+
+?PR?MAIN?3_0
+  +--> ?PR?SMGREC?3_0
+
+?PR?SMGREC?3_0
+  +--> ?CO?3_0
+  +--> ?PR?_SMGDISPLAY?3_0
+  +--> ?PR?_DELAY?3_0
+  +--> ?PR?_SELECT?3_0
+
+?PR?_SMGDISPLAY?3_0
+  +--> ?PR?_SELECT?3_0
+
+
+
+BL51 BANKED LINKER/LOCATER V6.22                                                      03/12/2022  23:25:41  PAGE 2
+
+
+SYMBOL TABLE OF MODULE:  3.0 (?C_STARTUP)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        ?C_STARTUP
+  C:08B2H         SEGMENT       ?C_C51STARTUP
+  I:0008H         SEGMENT       ?STACK
+  C:0000H         PUBLIC        ?C_STARTUP
+  D:00E0H         SYMBOL        ACC
+  D:00F0H         SYMBOL        B
+  D:0083H         SYMBOL        DPH
+  D:0082H         SYMBOL        DPL
+  N:0000H         SYMBOL        IBPSTACK
+  N:0100H         SYMBOL        IBPSTACKTOP
+  N:0080H         SYMBOL        IDATALEN
+  C:08B5H         SYMBOL        IDATALOOP
+  N:0000H         SYMBOL        PBPSTACK
+  N:0100H         SYMBOL        PBPSTACKTOP
+  N:0000H         SYMBOL        PDATALEN
+  N:0000H         SYMBOL        PDATASTART
+  N:0000H         SYMBOL        PPAGE
+  N:0000H         SYMBOL        PPAGEENABLE
+  D:00A0H         SYMBOL        PPAGE_SFR
+  D:0081H         SYMBOL        SP
+  C:08B2H         SYMBOL        STARTUP1
+  N:0000H         SYMBOL        XBPSTACK
+  N:0000H         SYMBOL        XBPSTACKTOP
+  N:0000H         SYMBOL        XDATALEN
+  N:0000H         SYMBOL        XDATASTART
+  C:0000H         LINE#         126
+  C:08B2H         LINE#         133
+  C:08B4H         LINE#         134
+  C:08B5H         LINE#         135
+  C:08B6H         LINE#         136
+  C:08B8H         LINE#         185
+  C:08BBH         LINE#         196
+  -------         ENDMOD        ?C_STARTUP
+
+  -------         MODULE        3_0
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  C:0837H         PUBLIC        _select
+  D:00A8H         PUBLIC        IE
+  C:086DH         PUBLIC        _delay
+  D:00B8H         PUBLIC        IP
+  C:0800H         PUBLIC        SMGrec
+  C:08BEH         PUBLIC        main
+  D:0098H         PUBLIC        SCON
+  D:0088H         PUBLIC        TCON
+  B:00A0H.5       PUBLIC        HC138_A
+  B:00A0H.6       PUBLIC        HC138_B
+  B:00A0H.7       PUBLIC        HC138_C
+  C:0882H         PUBLIC        _SMGdisplay
+BL51 BANKED LINKER/LOCATER V6.22                                                      03/12/2022  23:25:41  PAGE 3
+
+
+  C:08A0H         PUBLIC        SMG
+  D:00C8H         PUBLIC        T2CON
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          L?0030
+  -------         ENDPROC       L?0030
+  -------         PROC          _DELAY
+  D:0006H         SYMBOL        t
+  C:086DH         LINE#         11
+  C:086DH         LINE#         12
+  C:086DH         LINE#         13
+  C:0877H         LINE#         14
+  C:0881H         LINE#         15
+  -------         ENDPROC       _DELAY
+  -------         PROC          _SELECT
+  D:0007H         SYMBOL        m
+  C:0837H         LINE#         18
+  C:0837H         LINE#         19
+  C:0837H         LINE#         20
+  C:0846H         LINE#         21
+  C:0846H         LINE#         22
+  C:0846H         LINE#         23
+  C:0848H         LINE#         24
+  C:084AH         LINE#         25
+  C:084CH         LINE#         26
+  C:084DH         LINE#         27
+  C:084DH         LINE#         28
+  C:084FH         LINE#         29
+  C:0851H         LINE#         30
+  C:0853H         LINE#         31
+  C:0854H         LINE#         32
+  C:0854H         LINE#         33
+  C:0856H         LINE#         34
+  C:0858H         LINE#         35
+  C:085AH         LINE#         36
+  C:085BH         LINE#         37
+  C:085BH         LINE#         38
+  C:085DH         LINE#         39
+  C:085FH         LINE#         40
+  C:0861H         LINE#         41
+  C:0861H         LINE#         42
+  C:0861H         LINE#         43
+  -------         ENDPROC       _SELECT
+  -------         PROC          _SMGDISPLAY
+  D:0006H         SYMBOL        dat
+  D:0005H         SYMBOL        pos
+  C:0882H         LINE#         45
+  C:0884H         LINE#         46
+  C:0884H         LINE#         47
+  C:0889H         LINE#         48
+  C:0898H         LINE#         49
+  C:089DH         LINE#         50
+  C:089FH         LINE#         52
+  -------         ENDPROC       _SMGDISPLAY
+  -------         PROC          SMGREC
+  -------         DO            
+  D:0003H         SYMBOL        i
+  D:0002H         SYMBOL        j
+BL51 BANKED LINKER/LOCATER V6.22                                                      03/12/2022  23:25:41  PAGE 4
+
+
+  -------         ENDDO         
+  C:0800H         LINE#         54
+  C:0800H         LINE#         55
+  C:0800H         LINE#         57
+  C:0802H         LINE#         58
+  C:0802H         LINE#         59
+  C:0804H         LINE#         60
+  C:0804H         LINE#         61
+  C:080FH         LINE#         62
+  C:080FH         LINE#         63
+  C:0812H         LINE#         64
+  C:0816H         LINE#         65
+  C:081AH         LINE#         66
+  C:081CH         LINE#         67
+  C:081CH         LINE#         68
+  C:0821H         LINE#         69
+  C:0824H         LINE#         70
+  C:0828H         LINE#         71
+  C:082FH         LINE#         72
+  C:082FH         LINE#         73
+  C:0832H         LINE#         74
+  C:0836H         LINE#         75
+  -------         ENDPROC       SMGREC
+  -------         PROC          MAIN
+  C:08BEH         LINE#         79
+  C:08BEH         LINE#         80
+  C:08BEH         LINE#         81
+  C:08BEH         LINE#         82
+  C:08BEH         LINE#         84
+  C:08C1H         LINE#         85
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        3_0
+
+******************************************************************************
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 00C6H BYTE ( 9%) *
+******************************************************************************
+
+Program Size: data=9.0 xdata=0 code=198
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)
