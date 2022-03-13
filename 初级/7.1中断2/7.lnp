@@ -1,0 +1,4 @@
+"STARTUP.obj",
+"7.1.obj" 
+TO "7.1" 
+RAMSIZE(256) 
