@@ -1,0 +1,65 @@
+C51 COMPILER V9.00   11_0                                                                  03/14/2022 17:57:07 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 11_0
+OBJECT MODULE PLACED IN 11.0.OBJ
+COMPILER INVOKED BY: D:\kiel 5\C51\BIN\C51.EXE 11.0.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include "reg52.h"
+   2          
+   3          sfr AUXR=0x8e;
+   4          
+   5          unsigned char urdata;
+   6          void init_uart()
+   7          {
+   8   1        TMOD=0x20;
+   9   1        TH1=0xfd;
+  10   1        TL1=0xfd;
+  11   1        TR1=1;
+  12   1        
+  13   1        SCON=0x50;
+  14   1        AUXR=0x00;
+  15   1        
+  16   1        ES=1;
+  17   1        EA=1;
+  18   1      }
+  19          
+  20          void sendbyte(unsigned char dat)
+  21          {
+  22   1        SBUF=dat;
+  23   1        while(TI==0);
+  24   1        TI=0;
+  25   1      }
+  26          void serviceuart() interrupt 4
+  27          {
+  28   1        if(RI==1)
+  29   1        {
+  30   2          RI=0;
+  31   2          urdata=SBUF;
+  32   2          sendbyte(urdata+1);
+  33   2        }
+  34   1      }
+  35          
+  36          void main()
+  37          {
+  38   1          init_uart();
+  39   1          sendbyte(0x5a);
+  40   1          sendbyte(0xa5);
+  41   1          while(1);
+  42   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     76    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
