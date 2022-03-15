@@ -48,6 +48,8 @@ void initial()
 {
 select(5);
 P0=0x00;
+select(4);
+P0=0xff;
 }
 
 
