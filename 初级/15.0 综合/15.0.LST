@@ -1,0 +1,333 @@
+C51 COMPILER V9.00   15_0                                                                  03/16/2022 20:04:37 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 15_0
+OBJECT MODULE PLACED IN 15.0.OBJ
+COMPILER INVOKED BY: D:\kiel 5\C51\BIN\C51.EXE 15.0.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include "reg52.h"
+   2          
+   3          sfr AUXR=0x8e;
+   4          
+   5          sbit HC138_A=P2^5;
+   6          sbit HC138_B=P2^6;
+   7          sbit HC138_C=P2^7;
+   8          
+   9          sbit L7=P0^6;
+  10          sbit L8=P0^7;
+  11          
+  12          sbit S4=P3^3;
+  13          sbit S5=P3^2;
+  14          
+  15          unsigned char urdata;
+  16          unsigned int command;
+  17          unsigned int stateled;
+  18          
+  19          unsigned char code SMG[18]=
+  20          {0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,
+  21          0x90,0x88,0x80,0xc6,0xc0,0x86,0x8e,0xbf,0x7f};     ///0-9,a-f,  16:-,17:dp
+  22          
+  23          void delay(unsigned int t)
+  24          {
+  25   1      while(t--);
+  26   1      while(t--);
+  27   1      }
+  28          
+  29          void delay1(unsigned int t)
+  30          {
+  31   1      while(t--);
+  32   1      }
+  33          
+  34          
+  35          void select(unsigned char n)
+  36          {
+  37   1        switch (n)
+  38   1        {
+  39   2        case 4:
+  40   2        HC138_C=1;
+  41   2        HC138_B=0;
+  42   2        HC138_A=0;
+  43   2        break;
+  44   2        case 5:
+  45   2        HC138_C=1;
+  46   2        HC138_B=0;
+  47   2        HC138_A=1;
+  48   2        break;
+  49   2        case 6:
+  50   2        HC138_C=1;
+  51   2        HC138_B=1;
+  52   2        HC138_A=0;
+  53   2        break;
+  54   2        case 7:
+  55   2        HC138_C=1;
+C51 COMPILER V9.00   15_0                                                                  03/16/2022 20:04:37 PAGE 2   
+
+  56   2        HC138_B=1;
+  57   2        HC138_A=1;
+  58   2        break;
+  59   2        case 0:
+  60   2        HC138_C=0;
+  61   2        HC138_B=0;
+  62   2        HC138_A=0;
+  63   2        break;
+  64   2        } 
+  65   1      }
+  66          
+  67          unsigned int milsec=0;
+  68          unsigned int sec=0;
+  69          unsigned int min=0;
+  70          unsigned int hour=0;
+  71          //========================================== system initialization=========
+  72          void initial()
+  73          {
+  74   1        select(5);
+  75   1        P0=0x00;
+  76   1        select(4);
+  77   1        P0=stateled;
+  78   1        select(0);
+  79   1      }
+  80          //==========================================================================
+  81          //=========================================LED,SMG check
+  82          void check_LED()
+  83          {
+  84   1      unsigned char i;
+  85   1        select(4);
+  86   1      for(i=1;i<=8;i++)
+  87   1        {
+  88   2          stateled=0xff<<i;
+  89   2          P0=stateled;
+  90   2          delay(80000);
+  91   2          delay(80000);
+  92   2        }
+  93   1      for(i=1;i<=8;i++)
+  94   1        {
+  95   2         stateled=~(0xff<<i);
+  96   2         P0=stateled;
+  97   2         delay(80000);
+  98   2         delay(80000);
+  99   2        }
+ 100   1      }
+ 101          
+ 102          void check_SMG()
+ 103          {
+ 104   1        unsigned char pos;
+ 105   1          select(7);
+ 106   1          P0=0x00;
+ 107   1        for(pos=0;pos<8;pos++)
+ 108   1        {
+ 109   2        select(6);
+ 110   2        P0=~(0xfe<<pos);
+ 111   2        delay(60000);
+ 112   2        delay(80000);
+ 113   2        delay(60000);
+ 114   2        }
+ 115   1          for(pos=0;pos<8;pos++)
+ 116   1        {
+ 117   2        select(6);
+C51 COMPILER V9.00   15_0                                                                  03/16/2022 20:04:37 PAGE 3   
+
+ 118   2        P0=0xfe<<pos;
+ 119   2        delay(60000);
+ 120   2        delay(80000);
+ 121   2        delay(60000);
+ 122   2        }
+ 123   1      }
+ 124          //=========================================================
+ 125          //==================================SMG display
+ 126          void display_SMG(unsigned char pos,unsigned char value)
+ 127          {
+ 128   1        select(6);
+ 129   1        P0=0x01<<pos;
+ 130   1        select(7);
+ 131   1        P0=value;
+ 132   1      }
+ 133          //===========================================================
+ 134          //======================================time display
+ 135          void display_time()
+ 136          {
+ 137   1        display_SMG(0,SMG[hour/10]);
+ 138   1        delay1(500);
+ 139   1        display_SMG(1,SMG[hour%10]);
+ 140   1        delay1(500);
+ 141   1        display_SMG(2,SMG[16]);
+ 142   1        delay1(500);
+ 143   1        display_SMG(3,SMG[min/10]);
+ 144   1        delay1(500);
+ 145   1        display_SMG(4,SMG[min%10]);
+ 146   1        delay1(500);
+ 147   1        display_SMG(5,SMG[16]);
+ 148   1        delay1(500);
+ 149   1        display_SMG(6,SMG[sec/10]);
+ 150   1        delay1(500);
+ 151   1        display_SMG(7,SMG[sec%10]);
+ 152   1        delay1(500);
+ 153   1      }
+ 154          //==================================================
+ 155          //=========================timer initialize/service function===========
+ 156          void init_timer()
+ 157          {
+ 158   1        TMOD=0x01;
+ 159   1        TH0=(65535-50000)/256;
+ 160   1        TL0=(65535-50000)%256;
+ 161   1        
+ 162   1        ET0=1;
+ 163   1        EA=1;
+ 164   1        TR0=1;
+ 165   1      }
+ 166          
+ 167          void service_timer() interrupt 1
+ 168          {
+ 169   1          TH0=(65535-50000)/256;
+ 170   1          TL0=(65535-50000)%256;
+ 171   1          milsec++;
+ 172   1        if(milsec==20)
+ 173   1        {
+ 174   2          sec++;
+ 175   2          milsec=0;
+ 176   2          if(sec==60)
+ 177   2          {
+ 178   3            min++;
+ 179   3            sec=0;
+C51 COMPILER V9.00   15_0                                                                  03/16/2022 20:04:37 PAGE 4   
+
+ 180   3            if(min==60)
+ 181   3            {
+ 182   4            hour++;
+ 183   4            min=0;
+ 184   4             if(hour==99)
+ 185   4             {
+ 186   5             hour=0;
+ 187   5             }
+ 188   4            }
+ 189   3          }
+ 190   2        }
+ 191   1      }
+ 192          //============================================
+ 193          //========================output uart==========
+ 194          void init_uart()
+ 195          {
+ 196   1        TMOD=0x20;
+ 197   1        TH1=0xfd;
+ 198   1        TL1=0xfd;
+ 199   1        TR1=1;
+ 200   1        
+ 201   1        SCON=0x50;
+ 202   1        AUXR=0x00;
+ 203   1        
+ 204   1        ES=1;
+ 205   1        EA=1;
+ 206   1      }
+ 207          
+ 208          void sendbyte(unsigned char dat)
+ 209          {
+ 210   1        SBUF=dat;
+ 211   1        while(TI==0);
+ 212   1        TI=0;
+ 213   1      }
+ 214          
+ 215          void serviceuart() interrupt 4
+ 216          {
+ 217   1        if(RI==1)
+ 218   1        {
+ 219   2          command=SBUF;
+ 220   2          RI=0;
+ 221   2        }
+ 222   1      }
+ 223          //===================================================================
+ 224          //=====================command赋值，来自上位机数据
+ 225          void executecommand()
+ 226          {
+ 227   1        if(command!=0x00)
+ 228   1        {
+ 229   2         switch(command&0xf0)
+ 230   2         {
+ 231   3           case 0xa0:
+ 232   3             select(4);
+ 233   3             stateled=(stateled|0x0f)&(~command|0xf0);
+ 234   3             P0=stateled;
+ 235   3             select(0);
+ 236   3             command=0x00;
+ 237   3             break;
+ 238   3             
+ 239   3           case 0xb0:
+ 240   3             sendbyte((hour/10<<4)|(hour%10));
+ 241   3             sendbyte((min/10<<4)|(min%10));
+C51 COMPILER V9.00   15_0                                                                  03/16/2022 20:04:37 PAGE 5   
+
+ 242   3             sendbyte((sec/10<<4)|(sec%10));    
+ 243   3             command=0x00;
+ 244   3             break;      
+ 245   3         }
+ 246   2        }
+ 247   1      }
+ 248          //==========================================================================
+ 249          //================================scan keys===================================
+ 250          void scankeys()
+ 251          {
+ 252   1        if(S5==0)
+ 253   1        {
+ 254   2          display_time();
+ 255   2          if(S5==0)
+ 256   2          {
+ 257   3            while(S5==0)
+ 258   3            {
+ 259   4              display_time();
+ 260   4            }
+ 261   3          select(4);
+ 262   3          stateled=(stateled|0x40)&(~stateled|0xbf);
+ 263   3          P0=stateled;
+ 264   3          select(0);
+ 265   3          }
+ 266   2        }
+ 267   1        if(S4==0)
+ 268   1        {
+ 269   2          display_time();
+ 270   2          if(S4==0)
+ 271   2          {
+ 272   3            while(S4==0)
+ 273   3            {
+ 274   4              display_time();
+ 275   4            }
+ 276   3          select(4);
+ 277   3          stateled=(stateled|0x80)&(~stateled|0x7f);
+ 278   3          P0=stateled;
+ 279   3          select(0);
+ 280   3          }
+ 281   2        }
+ 282   1      }
+ 283          
+ 284          void main ()
+ 285          {
+ 286   1        initial();
+ 287   1        check_LED();
+ 288   1        delay(60000);
+ 289   1        check_SMG();
+ 290   1        delay(60000);
+ 291   1        init_timer();
+ 292   1        init_uart();
+ 293   1        while(1)
+ 294   1        {
+ 295   2          executecommand();
+ 296   2          display_time();
+ 297   2          scankeys();
+ 298   2          
+ 299   2        }
+ 300   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+C51 COMPILER V9.00   15_0                                                                  03/16/2022 20:04:37 PAGE 6   
+
+   CODE SIZE        =    921    ----
+   CONSTANT SIZE    =     18    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     13    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
