@@ -1,0 +1,5 @@
+"STARTUP.obj",
+"1.0.obj",
+"onewire.obj" 
+TO "1.0" 
+RAMSIZE(256) 
