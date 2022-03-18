@@ -1,0 +1,6 @@
+"STARTUP.obj",
+"2.0.obj",
+"ds1302.obj",
+"SMGdisplay.obj" 
+TO "2.0" 
+RAMSIZE(256) 
