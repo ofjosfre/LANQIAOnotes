@@ -1,0 +1,5 @@
+"STARTUP.obj",
+"3.0.obj",
+"SMGdisplay.obj" 
+TO "3.0" 
+RAMSIZE(256) 
