@@ -1,8 +1,8 @@
 /*
-  ³ÌĞòËµÃ÷: IIC×ÜÏßÇı¶¯³ÌĞò
-  Èí¼ş»·¾³: Keil uVision 4.10 
-  Ó²¼ş»·¾³: CT107µ¥Æ¬»ú×ÛºÏÊµÑµÆ½Ì¨ 8051£¬12MHz
-  ÈÕ    ÆÚ: 2011-8-9
+  ç¨‹åºè¯´æ˜: IICæ€»çº¿é©±åŠ¨ç¨‹åº
+  è½¯ä»¶ç¯å¢ƒ: Keil uVision 4.10 
+  ç¡¬ä»¶ç¯å¢ƒ: CT107å•ç‰‡æœºç»¼åˆå®è®­å¹³å° 8051ï¼Œ12MHz
+  æ—¥    æœŸ: 2011-8-9
 */
 
 #include "STC15F2K60S2.h"
@@ -13,16 +13,16 @@
 #define SlaveAddrW 0xA0
 #define SlaveAddrR 0xA1
 
-//×ÜÏßÒı½Å¶¨Òå
-sbit SDA = P2^1;  /* Êı¾İÏß */
-sbit SCL = P2^0;  /* Ê±ÖÓÏß */
+//æ€»çº¿å¼•è„šå®šä¹‰
+sbit SDA = P2^1;  /* æ•°æ®çº¿ */
+sbit SCL = P2^0;  /* æ—¶é’Ÿçº¿ */
 
 void IIC_Delay(unsigned char i)
 {
     do{_nop_();}
     while(i--);        
 }
-//×ÜÏßÆô¶¯Ìõ¼ş
+//æ€»çº¿å¯åŠ¨æ¡ä»¶
 void IIC_Start(void)
 {
     SDA = 1;
@@ -33,7 +33,7 @@ void IIC_Start(void)
     SCL = 0;	
 }
 
-//×ÜÏßÍ£Ö¹Ìõ¼ş
+//æ€»çº¿åœæ­¢æ¡ä»¶
 void IIC_Stop(void)
 {
     SDA = 0;
@@ -43,11 +43,11 @@ void IIC_Stop(void)
     IIC_Delay(DELAY_TIME);
 }
 
-//·¢ËÍÓ¦´ğ
+//å‘é€åº”ç­”
 void IIC_SendAck(bit ackbit)
 {
     SCL = 0;
-    SDA = ackbit;  					// 0£ºÓ¦´ğ£¬1£º·ÇÓ¦´ğ
+    SDA = ackbit;  					// 0ï¼šåº”ç­”ï¼Œ1ï¼šéåº”ç­”
     IIC_Delay(DELAY_TIME);
     SCL = 1;
     IIC_Delay(DELAY_TIME);
@@ -56,7 +56,7 @@ void IIC_SendAck(bit ackbit)
     IIC_Delay(DELAY_TIME);
 }
 
-//µÈ´ıÓ¦´ğ
+//ç­‰å¾…åº”ç­”
 bit IIC_WaitAck(void)
 {
     bit ackbit;
@@ -69,7 +69,7 @@ bit IIC_WaitAck(void)
     return ackbit;
 }
 
-//Í¨¹ıI2C×ÜÏß·¢ËÍÊı¾İ
+//é€šè¿‡I2Cæ€»çº¿å‘é€æ•°æ®
 void IIC_SendByte(unsigned char byt)
 {
     unsigned char i;
@@ -88,7 +88,7 @@ void IIC_SendByte(unsigned char byt)
     SCL  = 0;  
 }
 
-//´ÓI2C×ÜÏßÉÏ½ÓÊÕÊı¾İ
+//ä»I2Cæ€»çº¿ä¸Šæ¥æ”¶æ•°æ®
 unsigned char IIC_RecByte(void)
 {
     unsigned char i, da;
@@ -130,7 +130,7 @@ void write_eeprom(unsigned char add,unsigned char dat)
 
 unsigned char read_eeprom(unsigned char add)
 {
-	unsigned char ret;//ÏÂÃæ¿ÉÒÔ¼ÓÒ»¸öEA=0¹Ø±ÕÖÕÖĞ¶Ï
+	unsigned char ret;//ä¸‹é¢å¯ä»¥åŠ ä¸€ä¸ªEA=0å…³é—­ç»ˆä¸­æ–­
 	IIC_Start();
 	IIC_SendByte(0Xa0);
 	IIC_WaitAck();
@@ -142,7 +142,31 @@ unsigned char read_eeprom(unsigned char add)
 	IIC_WaitAck();
 	ret = IIC_RecByte();
 	IIC_SendAck(1);
-	IIC_Stop();//ÏÂÃæ¿ÉÒÔ¼ÓÒ»¸öEA=1´ò¿ªÖĞ¶Ï
+	IIC_Stop();//ä¸‹é¢å¯ä»¥åŠ ä¸€ä¸ªEA=1æ‰“å¼€ä¸­æ–­
 	
 	return ret;
+}
+
+unsigned char Read_AIN3()
+{
+	unsigned char temp = 0;
+	unsigned char i;
+	for(i=0;i<2;i++)
+	{
+	IIC_Start();//IICæ€»çº¿èµ·å§‹ä¿¡å·
+	IIC_SendByte(0x90);//å‘é€PCF8591çš„å†™æ“ä½œåœ°å€
+	IIC_WaitAck();//ç­‰å¾…ä»æœºåº”ç­”
+	IIC_SendByte(0x03);//å‘é€æ§åˆ¶å­—èŠ‚ï¼Œé€‰æ‹©æ¨¡æ‹Ÿé‡è¾“å…¥æ¨¡å¼(4è·¯å•ç«¯è¾“å…¥)å’Œé€šé“(é€šé“3)ã€‚
+	//IIC_SendByte(0x01);//å‘é€æ§åˆ¶å­—èŠ‚ï¼Œé€‰æ‹©æ¨¡æ‹Ÿé‡è¾“å…¥æ¨¡å¼(4è·¯å•ç«¯è¾“å…¥)å’Œé€šé“(é€šé“1)ã€‚
+	IIC_WaitAck();//ç­‰å¾…ä»æœºåº”ç­”
+	IIC_Stop();//IICæ€»çº¿èµ·å§‹ä¿¡å·
+	
+	IIC_Start();
+	IIC_SendByte(0x91);//å‘é€PCF8591çš„è¯»æ“ä½œåœ°å€
+	IIC_WaitAck();
+	temp = IIC_RecByte();//è¯»å–PCF8591é€šé“çš„æ•°æ® 
+	IIC_SendAck(1);//äº§ç”Ÿéåº”ç­”ä¿¡å·
+	IIC_Stop();
+	}
+	return temp;
 }
