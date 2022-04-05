@@ -1,0 +1,5 @@
+"STARTUP.obj",
+"9.0.obj",
+"iic.obj" 
+TO "9.0" 
+RAMSIZE(256) 

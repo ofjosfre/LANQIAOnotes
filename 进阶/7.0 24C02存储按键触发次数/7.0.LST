@@ -1,0 +1,233 @@
+C51 COMPILER V9.00   7_0                                                                   04/05/2022 20:41:55 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 7_0
+OBJECT MODULE PLACED IN 7.0.OBJ
+COMPILER INVOKED BY: D:\kiel 5\C51\BIN\C51.EXE 7.0.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          /*==================蓝桥杯单片机特训==================
+   2          【进阶04】：24C02存储按键触发次数
+   3          **平  台：CT107D单片机综合实训平台
+   4          **模  式：IO模式
+   5          **底层驱动文件：2022年竞赛资源数据包提供的文件
+   6          **设  计：欧浩源（小蜜蜂老师，ohy3686@qq.com）
+   7          **时  间：2022-04-01
+   8          **更多详见：www.xmf393.com
+   9          ====================================================*/
+  10          #include "reg52.h"
+  11          #include "iic.h"
+  12          //定义三个独立按键：S4 S5 S6
+  13          //注意：J5的23脚短接，要接到BTN这边
+  14          sbit S4 = P3^3;
+  15          sbit S5 = P3^2;
+  16          sbit S6 = P3^1;
+  17          //定义动态显示中单个数码管点亮时长
+  18          #define TSMG  500
+  19          //-------共阳数码管的段码编码表（无小数点）--------
+  20          //0 1 2 3 4 5 6 7 8 9 A b C D E F - .
+  21          unsigned char code SMG_NoDot[18]={0xc0,0xf9,
+  22              0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90,
+  23              0x88,0x83,0xc6,0xc0,0x86,0x8e,0xbf,0x7f};
+  24          //定义3个按键的计数变量
+  25          unsigned char dat1 = 0, dat2 = 0, dat3 = 0;
+  26          //==============数码管动态显示专用延时函数=============
+  27          void DelaySMG(unsigned int t)
+  28          {
+  29   1        while(t--);
+  30   1      }
+  31          //==================设置选通的锁存器===================
+  32          void Set_HC573(unsigned char channel, unsigned char dat)
+  33          {
+  34   1        P0 = dat;                      //待设置数据
+  35   1        switch(channel)                //选通锁存器
+  36   1        {
+  37   2          case 4:
+  38   2            P2 = (P2 & 0x1f) | 0x80;  //Y4输出0，LED控制
+  39   2          break;
+  40   2          case 5:
+  41   2            P2 = (P2 & 0x1f) | 0xa0;  //Y5输出0，蜂鸣器和继电器控制
+  42   2          break;
+  43   2          case 6:
+  44   2            P2 = (P2 & 0x1f) | 0xc0;  //Y6输出0，数码管位选
+  45   2          break;
+  46   2          case 7:
+  47   2            P2 = (P2 & 0x1f) | 0xe0;  //Y7输出0，数码管段码
+  48   2          break;
+  49   2          case 0:
+  50   2            P2 = (P2 & 0x1f) | 0x00;  //所有锁存器不选择
+  51   2          break;
+  52   2        }
+  53   1        P2 = (P2 & 0x1f) | 0x00;      //设置完成，关闭全部锁存器
+  54   1      }
+  55          //=================单个数码管动态显示=================
+C51 COMPILER V9.00   7_0                                                                   04/05/2022 20:41:55 PAGE 2   
+
+  56          void DisplaySMG_Bit(unsigned char pos, unsigned char value)
+  57          {
+  58   1        Set_HC573(6, 0x01 << pos);    //数码管的段位
+  59   1        Set_HC573(7, value);          //数码管显示内容
+  60   1        DelaySMG(TSMG);                //数码管点亮时长
+  61   1        Set_HC573(6, 0x01 << pos);        
+  62   1        Set_HC573(7, 0xff);            //消隐
+  63   1      }
+  64          //=================全部数码管静态显示=================
+  65          void DisplaySMG_All(unsigned char value)
+  66          {
+  67   1        Set_HC573(6, 0xff);    //使能所有数码管
+  68   1        Set_HC573(7, value);  //数码管显示内容  
+  69   1      }
+  70          //===================读取值显示函数===================
+  71          void DisplaySMG_24C02()
+  72          {
+  73   1        //数码管右起第0位
+  74   1        DisplaySMG_Bit(7,SMG_NoDot[dat3  % 10]);
+  75   1        //数码管右起第1位
+  76   1        DisplaySMG_Bit(6,SMG_NoDot[dat3 / 10]);    
+  77   1        //数码管右起第2位
+  78   1        DisplaySMG_Bit(5,SMG_NoDot[16]);        
+  79   1        
+  80   1        //数码管右起第3位
+  81   1        DisplaySMG_Bit(4,SMG_NoDot[dat2  % 10]);
+  82   1        //数码管右起第4位
+  83   1        DisplaySMG_Bit(3,SMG_NoDot[dat2 / 10]);    
+  84   1        //数码管右起第5位
+  85   1        DisplaySMG_Bit(2,SMG_NoDot[16]);        
+  86   1        
+  87   1        //数码管右起第6位
+  88   1        DisplaySMG_Bit(1,SMG_NoDot[dat1 % 10]);        
+  89   1        //数码管右起第7位
+  90   1        DisplaySMG_Bit(0,SMG_NoDot[dat1 / 10]);        
+  91   1      }
+  92          //==================24C02单字节写入===================
+  93          void Write_24C02(unsigned char addr, unsigned char dat)
+  94          {
+  95   1        IIC_Start();          //起始信号
+  96   1        IIC_SendByte(0xa0);    //EEPROM的写设备地址
+  97   1        IIC_WaitAck();        //等待从机应答
+  98   1        IIC_SendByte(addr);    //内存单元地址
+  99   1        IIC_WaitAck();        //等待从机应答
+ 100   1        IIC_SendByte(dat);    //内存写入数据
+ 101   1        IIC_WaitAck();        //等待从机应答
+ 102   1        IIC_Stop();            //停止信号
+ 103   1      }
+ 104          //==================24C02单字节读取===================
+ 105          unsigned char Read_24C02(unsigned char addr)
+ 106          {
+ 107   1        unsigned char tmp;
+ 108   1        //首先，进行一个伪写操作
+ 109   1        IIC_Start();          //起始信号
+ 110   1        IIC_SendByte(0xa0);    //EEPROM的写设备地址
+ 111   1        IIC_WaitAck();        //等待从机应答
+ 112   1        IIC_SendByte(addr);    //内存单元地址
+ 113   1        IIC_WaitAck();        //等待从机应答
+ 114   1        //然后，开始字节读操作
+ 115   1        IIC_Start();          //起始信号
+ 116   1        IIC_SendByte(0xa1);    //EEPROM的读设备地址
+ 117   1        IIC_WaitAck();        //等待从机应答
+C51 COMPILER V9.00   7_0                                                                   04/05/2022 20:41:55 PAGE 3   
+
+ 118   1        tmp = IIC_RecByte();  //读取内存中的数据
+ 119   1        IIC_SendAck(1);        //产生非应答信号
+ 120   1        IIC_Stop();            //停止信号
+ 121   1        return tmp;
+ 122   1      }
+ 123          //==================独立按键扫描处理===================
+ 124          void Scan_Keys()
+ 125          {
+ 126   1        //按键S4的扫描处理
+ 127   1        if(S4 == 0)
+ 128   1        {
+ 129   2          DelaySMG(100);      //去抖动
+ 130   2          if(S4 == 0)
+ 131   2          {
+ 132   3            dat1++;            //按键次数增加
+ 133   3            if(dat1 > 13)      //大于13恢复0
+ 134   3            {
+ 135   4              dat1 = 0;
+ 136   4            }
+ 137   3            Write_24C02(0x00, dat1);  //写入24C02
+ 138   3            while(S4 == 0)            //松手检测
+ 139   3            {
+ 140   4              DisplaySMG_24C02();      //保持数码管动态刷新
+ 141   4            }
+ 142   3          }
+ 143   2        }
+ 144   1        //按键S5的扫描处理
+ 145   1        if(S5 == 0)
+ 146   1        {
+ 147   2          DelaySMG(100);
+ 148   2          if(S5 == 0)
+ 149   2          {
+ 150   3            dat2++;
+ 151   3            if(dat2 > 13)
+ 152   3            {
+ 153   4              dat2 = 0;
+ 154   4            }
+ 155   3            Write_24C02(0x01, dat2);
+ 156   3            while(S5 == 0)
+ 157   3            {
+ 158   4              DisplaySMG_24C02();
+ 159   4            }
+ 160   3          }
+ 161   2        }
+ 162   1        //按键S6的扫描处理
+ 163   1        if(S6 == 0)
+ 164   1        {
+ 165   2          DelaySMG(100);
+ 166   2          if(S6 == 0)
+ 167   2          {
+ 168   3            dat3++;
+ 169   3            if(dat3 > 13)
+ 170   3            {
+ 171   4              dat3 = 0;
+ 172   4            }
+ 173   3            Write_24C02(0x02, dat3);
+ 174   3            while(S6 == 0)
+ 175   3            {
+ 176   4              DisplaySMG_24C02();
+ 177   4            }
+ 178   3          }
+ 179   2        }
+C51 COMPILER V9.00   7_0                                                                   04/05/2022 20:41:55 PAGE 4   
+
+ 180   1      }
+ 181          //=====================系统初始化=====================
+ 182          void Init_sys()
+ 183          {
+ 184   1        //系统基础设备初始化
+ 185   1        Set_HC573(0, 0x00);        //关闭所有锁存器
+ 186   1        Set_HC573(5, 0x00);        //关闭蜂鸣器和继电器
+ 187   1        Set_HC573(4, 0xff);        //关闭全部LED灯
+ 188   1        DisplaySMG_All(0xff);      //关闭全部数码管
+ 189   1        //将三个按键的历史按下次数读出
+ 190   1        dat1 = Read_24C02(0x00);  
+ 191   1        dat2 = Read_24C02(0x01);  
+ 192   1        dat3 = Read_24C02(0x02);  
+ 193   1      }
+ 194          //=======================主函数=======================
+ 195          void main()
+ 196          {
+ 197   1        Init_sys();                //系统初始化
+ 198   1        while(1)
+ 199   1        {
+ 200   2          Scan_Keys();            //循环扫描按键
+ 201   2          DisplaySMG_24C02();      //动态刷新数码管
+ 202   2        }
+ 203   1      }
+ 204          //========================END=======================
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    505    ----
+   CONSTANT SIZE    =     18    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
