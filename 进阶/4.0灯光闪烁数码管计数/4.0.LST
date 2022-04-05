@@ -1,0 +1,160 @@
+C51 COMPILER V9.00   4_0                                                                   04/05/2022 19:49:48 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 4_0
+OBJECT MODULE PLACED IN 4.0.OBJ
+COMPILER INVOKED BY: D:\kiel 5\C51\BIN\C51.EXE 4.0.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          /*==================蓝桥杯单片机特训==================
+   2          【进阶01】：灯光闪烁与数码管计数
+   3          **平  台：CT107D单片机综合实训平台
+   4          **模  式：IO模式
+   5          **设  计：欧浩源（小蜜蜂老师，ohy3686@qq.com）
+   6          **时  间：2022-03-31
+   7          **更多详见：www.xmf393.com
+   8          ====================================================*/
+   9          #include "reg52.h"
+  10          
+  11          //定义动态显示中单个数码管点亮时长
+  12          #define TSMG  500
+  13          //-------共阳数码管的段码编码表（无小数点）--------
+  14          //0 1 2 3 4 5 6 7 8 9 A B C D E F - .
+  15          unsigned char code SMG_NoDot[18]={0xc0,0xf9,
+  16              0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90,
+  17              0x88,0x80,0xc6,0xc0,0x86,0x8e,0xbf,0x7f};
+  18          
+  19          unsigned char stat_led = 0xff;    //定义LED灯当前状态
+  20          unsigned char num1 = 0, num2 = 0;  //定义计数变量
+  21          void Display_Num();                //声明数码管显示函数              
+  22          //====================普通延时函数====================
+  23          void Delay(unsigned int t)
+  24          {
+  25   1        while(t--)
+  26   1        {
+  27   2          Display_Num();              //延时期间保持数码管刷新
+  28   2        }
+  29   1      }
+  30          //==============数码管动态显示专用延时函数=============
+  31          void DelaySMG(unsigned int t)
+  32          {
+  33   1        while(t--);
+  34   1      }
+  35          //==================设置选通的锁存器===================
+  36          void Set_HC573(unsigned char channel, unsigned char dat)
+  37          {
+  38   1        P0 = dat;                      //待设置数据
+  39   1        switch(channel)                //选通锁存器
+  40   1        {
+  41   2          case 4:
+  42   2            P2 = (P2 & 0x1f) | 0x80;  //Y4输出0，LED控制
+  43   2          break;
+  44   2          case 5:
+  45   2            P2 = (P2 & 0x1f) | 0xa0;  //Y5输出0，蜂鸣器和继电器控制
+  46   2          break;
+  47   2          case 6:
+  48   2            P2 = (P2 & 0x1f) | 0xc0;  //Y6输出0，数码管位选
+  49   2          break;
+  50   2          case 7:
+  51   2            P2 = (P2 & 0x1f) | 0xe0;  //Y7输出0，数码管段码
+  52   2          break;
+  53   2          case 0:
+  54   2            P2 = (P2 & 0x1f) | 0x00;  //所有锁存器不选择
+  55   2          break;
+C51 COMPILER V9.00   4_0                                                                   04/05/2022 19:49:48 PAGE 2   
+
+  56   2        }
+  57   1        P2 = (P2 & 0x1f) | 0x00;      //设置完成，关闭所有锁存器
+  58   1      }
+  59          //=================单个数码管动态显示=================
+  60          void DisplaySMG_Bit(unsigned char pos, unsigned char value)
+  61          {
+  62   1        Set_HC573(6, 0x01 << pos);    //数码管的段位
+  63   1        Set_HC573(7, value);          //数码管显示内容
+  64   1        DelaySMG(TSMG);                //数码管点亮时长
+  65   1        Set_HC573(6, 0x01 << pos);        
+  66   1        Set_HC573(7, 0xff);            //消隐
+  67   1      }
+  68          //=================全部数码管静态显示=================
+  69          void DisplaySMG_All(unsigned char value)
+  70          {
+  71   1        Set_HC573(6, 0xff);    //使能所有数码管
+  72   1        Set_HC573(7, value);  //数码管显示内容  
+  73   1      }
+  74          //===================计数值显示函数===================
+  75          void Display_Num()
+  76          {
+  77   1        //数码管右起第0位
+  78   1        DisplaySMG_Bit(7,SMG_NoDot[num1  % 10]);
+  79   1        //数码管右起第1位
+  80   1        DisplaySMG_Bit(6,SMG_NoDot[num1 / 10]);    
+  81   1        //数码管由起第7位
+  82   1        DisplaySMG_Bit(0,SMG_NoDot[num2]);        
+  83   1      }
+  84          //====================灯光闪烁控制====================
+  85          void LED_Control()
+  86          {
+  87   1        stat_led &= ~0x80;         
+  88   1        Set_HC573(4, stat_led);    //L8灯点亮
+  89   1        Delay(200);                //延时
+  90   1        stat_led |= 0x80;         
+  91   1        Set_HC573(4, stat_led);    //L8灯熄灭
+  92   1        Delay(200);                //延时
+  93   1        
+  94   1        num1++;                    //L8闪烁累加
+  95   1        if(num1 == 100)            //达到最大值时恢复0
+  96   1        {
+  97   2          num1 = 0;
+  98   2        }
+  99   1        //L1灯和L2灯同时翻转当前的工作状态
+ 100   1        if((stat_led & 0x03) == 0x03)
+ 101   1        {
+ 102   2          stat_led &= ~0x03;
+ 103   2        }
+ 104   1        else
+ 105   1        {
+ 106   2          stat_led |= 0x03;
+ 107   2        }
+ 108   1        Set_HC573(4, stat_led);
+ 109   1        
+ 110   1        num2++;                    //L1和L2翻转次数累加
+ 111   1        if(num2 == 10)            //达到最大值时恢复0
+ 112   1        {
+ 113   2          num2 = 0;
+ 114   2        }
+ 115   1      }
+ 116          //=====================系统初始化=====================
+ 117          void Init_sys()
+C51 COMPILER V9.00   4_0                                                                   04/05/2022 19:49:48 PAGE 3   
+
+ 118          {
+ 119   1        Set_HC573(0, 0x00);        //关闭所有锁存器
+ 120   1        Set_HC573(5, 0x00);        //关闭蜂鸣器和继电器
+ 121   1        Set_HC573(4, 0xff);        //关闭全部LED灯
+ 122   1        DisplaySMG_All(0xff);      //关闭全部数码管
+ 123   1      }
+ 124          //=======================主函数=======================
+ 125          void main()
+ 126          {
+ 127   1        Init_sys();                //系统初始化
+ 128   1        while(1)
+ 129   1        {
+ 130   2          LED_Control();          //灯光闪烁
+ 131   2          Display_Num();          //数码管计数
+ 132   2        }
+ 133   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    314    ----
+   CONSTANT SIZE    =     18    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
