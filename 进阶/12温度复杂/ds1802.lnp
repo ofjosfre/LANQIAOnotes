@@ -1,0 +1,6 @@
+"STARTUP.obj",
+"1802.obj",
+"iic.obj",
+"onewire.obj" 
+TO "ds1802" 
+RAMSIZE(256) 
